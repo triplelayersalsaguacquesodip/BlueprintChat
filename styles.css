@@ -12,7 +12,7 @@
           left: 0;
         }
         .topbar {
-          position: sticky;
+          position: relative;
           background: black;
           border-color: blue;
           padding: 20px;
