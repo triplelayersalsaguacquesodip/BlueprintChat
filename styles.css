@@ -1,3 +1,7 @@
+        button {
+          border-color: blue;
+          border-width: 3px;
+        }
         .settings {
           padding: 20px; 
           background: grey;
