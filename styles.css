@@ -21,6 +21,8 @@
           padding: 20px;
           width: 100%;
           z-index: 10000000;
-        .dark {
+        }
+        body {
           background-color: black;
+          color: white;
         }
