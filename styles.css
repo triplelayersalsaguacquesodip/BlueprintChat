@@ -1,7 +1,7 @@
         button {
           border-color: blue;
           border-width: 3px;
-          border-style: bold;
+          border-style: solid;
         }
         .settings {
           padding: 20px; 
@@ -14,14 +14,14 @@
           height: 40px;
           border-color: blue;
           left: 0;
-          border-style: bold;
+          border-style: solid;
 
         }
         .topbar {
           position: sticky;
           background: black;
           border-color: blue;
-          border-style: bold;
+          border-style: solid;
           width: 100%;
           z-index: 10000000;
           border-width: 3px;
