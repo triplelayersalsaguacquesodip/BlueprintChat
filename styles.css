@@ -1,8 +1,14 @@
+/* My Tag Styles: */               
         button {
           border-color: blue;
           border-width: 3px;
           border-style: solid;
         }
+        body {
+          background-color: black;
+          color: white;
+        }
+/* My Class Styles: */               
         .settings {
           padding: 20px; 
           background: grey;
@@ -26,7 +32,4 @@
           z-index: 10000000;
           border-width: 3px;
         }
-        body {
-          background-color: black;
-          color: white;
-        }
+
