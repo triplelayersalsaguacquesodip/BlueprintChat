@@ -13,9 +13,134 @@
           <button class="settings" onclick=window.location.href="account.html">
             <img src="Data/settingsicon.png" width="20">
           </button>
-      </div>
-      <div>
-        <button class="addchat" onclick=window.location.href="newchat.html">Add a New Chat</button>
-      </div>
-    </body>
+<!-- CHAT APP WRAPPER -->
+<div id="chat-app">
+
+  <!-- MENU SCREEN -->
+  <div id="main-menu">
+    <h3>Chat Menu</h3>
+    <button id="btn-create" onclick="createChat()">Create Chat</button>
+    <button id="btn-join-view" onclick="showJoinInput()">Join Chat</button>
+
+    <!-- JOIN INPUT SECTION (Hidden by default) -->
+    <div id="join-section" style="display: none;">
+      <p>Enter 5-digit code:</p>
+      <input type="text" id="join-code" maxlength="5" placeholder="12345">
+      <button onclick="joinChat()">Submit Code</button>
+    </div>
+  </div>
+
+  <!-- CHAT ROOM SCREEN (Hidden by default) -->
+  <div id="chat-room" style="display: none;">
+    <h3 id="room-title">Room Code: -----</h3>
+    <button onclick="leaveChat()">Leave Room</button>
+
+    <!-- Messages Container -->
+    <div id="messages"></div>
+
+    <!-- Message Input -->
+    <div>
+      <input type="text" id="message-input" placeholder="Type a message..." onkeydown="if(event.key === 'Enter') sendMessage()">
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+  </div>
+
+  <!-- MQTT.js Library (Handles real-time communication without a database backend) -->
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
+  <script>
+    // Connect to public WebSocket broker
+    const client = mqtt.connect('wss://broker.hivemq.com:8884/mqtt');
+
+    let currentRoom = "";
+    const userId = Math.random().toString(36).substring(2, 6);
+
+    // Listen for incoming messages over the network
+    client.on('message', (topic, message) => {
+      try {
+        const data = JSON.parse(message.toString());
+        displayMessage(data.text, data.senderId === userId);
+      } catch (e) {
+        console.error("Error parsing message:", e);
+      }
+    });
+
+    // Reveal the input field when "Join Chat" is clicked
+    function showJoinInput() {
+      document.getElementById("join-section").style.display = "block";
+    }
+
+    // Generate a random 5-digit code and enter the room
+    function createChat() {
+      const code = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
+      enterRoom(code);
+    }
+
+    // Validate the 5-digit code input and enter the room
+    function joinChat() {
+      const code = document.getElementById("join-code").value.trim();
+      if (code.length === 5 && !isNaN(code)) {
+        enterRoom(code);
+      } else {
+        alert("Please enter a valid 5-digit numeric code.");
+      }
+    } 
+
+    // Connect to the MQTT channel matching the room code
+    function enterRoom(code) {
+      currentRoom = code;
+      const topicPath = "mychatapp/room/" + currentRoom;
+
+      client.subscribe(topicPath, (err) => {
+        if (!err) {
+          document.getElementById("main-menu").style.display = "none";
+          document.getElementById("chat-room").style.display = "block";
+          document.getElementById("room-title").innerText = "Room Code: " + code;
+          document.getElementById("messages").innerHTML = "";
+        } else {
+          alert("Failed to join room.");
+        }
+      });
+    }
+
+    // Publish message to the connected channel
+    function sendMessage() {
+      const input = document.getElementById("message-input");
+      const text = input.value.trim();
+
+      if (text !== "" && currentRoom !== "") {
+        const topicPath = "mychatapp/room/" + currentRoom;
+        const payload = JSON.stringify({
+          text: text,
+          senderId: userId,
+          timestamp: Date.now()
+        });
+
+        client.publish(topicPath, payload);
+        input.value = "";
+      }
+    }
+
+    // Render text into the message list
+    function displayMessage(text, isSelf) {
+      const messageBox = document.getElementById("messages");
+      const newMessage = document.createElement("p");
+      newMessage.innerText = (isSelf ? "You: " : "User: ") + text;
+      messageBox.appendChild(newMessage);
+    }
+
+    // Disconnect from channel and reset back to main menu
+    function leaveChat() {
+      if (currentRoom !== "") {
+        client.unsubscribe("mychatapp/room/" + currentRoom);
+        currentRoom = "";
+      }
+      document.getElementById("chat-room").style.display = "none";
+      document.getElementById("join-section").style.display = "none";
+      document.getElementById("main-menu").style.display = "block";
+      document.getElementById("join-code").value = "";
+    }
+  </script>
+</body>
   </html>
